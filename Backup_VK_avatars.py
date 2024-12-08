@@ -8,8 +8,8 @@ VK_API_VERSION = '5.131'
 VK_API_URL = 'https://api.vk.com/method/'
 YANDEX_API_URL = 'https://cloud-api.yandex.net/v1/disk/'
 
+# Получить фото из ВК
 def get_vk_photos(user_id, access_token, count=5):
-    """Получает фотографии с профиля ВКонтакте."""
     params = {
         'owner_id': user_id,
         'album_id': 'profile',
@@ -22,33 +22,33 @@ def get_vk_photos(user_id, access_token, count=5):
     response = requests.get(f'{VK_API_URL}photos.get', params=params)
     response.raise_for_status()
     
-    # Добавляем вывод ответа для отладки
+    # Проверка
     print(f"VK API Response: {response.json()}")
     
     return response.json()['response']['items']
 
+# Макс размер фото
 def get_max_size_photo(photo):
-    """Возвращает URL фотографии максимального размера."""
     sizes = photo['sizes']
     max_size = max(sizes, key=lambda size: size['width'] * size['height'])
     return max_size['url'], max_size['type']
 
+# Создаем папку на Я.Диск
 def create_yandex_folder(folder_name, yandex_token):
-    """Создает папку на Яндекс.Диске."""
     headers = {'Authorization': f'OAuth {yandex_token}'}
     params = {'path': folder_name}
     response = requests.put(f'{YANDEX_API_URL}resources', headers=headers, params=params)
     response.raise_for_status()
 
+# Загрузка фото на Я.Диск
 def upload_photo_to_yandex(file_url, file_path, yandex_token):
-    """Загружает фотографию на Яндекс.Диск."""
     headers = {'Authorization': f'OAuth {yandex_token}'}
     params = {'path': file_path, 'url': file_url}
     response = requests.post(f'{YANDEX_API_URL}resources/upload', headers=headers, params=params)
     response.raise_for_status()
 
+# Копирование фото из ВК на Я.Диск
 def backup_photos(user_id, vk_token, yandex_token, count=5):
-    """Создает резервную копию фотографий с профиля ВКонтакте на Яндекс.Диск."""
     try:
         photos = get_vk_photos(user_id, vk_token, count)
     except KeyError as e:
